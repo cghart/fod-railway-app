@@ -6,6 +6,21 @@ const port = process.env.PORT || 8080;
 
 app.use(express.json());
 
+// Root endpoint
+app.get('/', (req, res) => {
+    res.json({
+        name: 'FOD API Server',
+        version: '1.0.0',
+        status: 'running',
+        endpoints: {
+            health: '/health',
+            createWorkout: 'POST /api/v1/workouts',
+            updateWorkout: 'PUT /api/v1/workouts/:id',
+            listenWorkout: 'GET /api/v1/workouts/:facilityID/listen'
+        }
+    });
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.status(200).send('OK');
