@@ -3,6 +3,7 @@ import Fluent
 import FluentPostgresDriver
 import Redis
 
+// FOD Server Application for Railway Deployment
 @main
 public struct FodServed {
     public static func main() async throws {
