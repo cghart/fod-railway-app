@@ -1,0 +1,16 @@
+{
+  "name": "fod-railway-api",
+  "version": "1.0.0",
+  "description": "FOD API for Railway deployment",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "uuid": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
