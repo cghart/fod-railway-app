@@ -105,4 +105,4 @@ app.get('/api/v1/workouts/:facilityID/listen', (req, res) => {
 
 server.listen(port, '0.0.0.0', () => {
     console.log(`FOD Server with WebSocket running on port ${port}`);
-});
+});console.log('Dashboard version: 1.1');
