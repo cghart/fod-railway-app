@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Fitness On Demand Web View</title>
+  <meta name="description" content="Fitness On Demand Web View" />
+  <meta name="author" content="SitePoint" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      background: transparent;
+      overflow: hidden;
+      font-family: "Inter", sans-serif;
+      font-weight: 700;
+      color: #212121;
+      width: 1280px;
+    }
+
+    #debug {
+      display: none;
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 8px;
+      position: absolute;
+      top: 4px;
+      left: 4px;
+    }
+
+    #debug>* {
+      display: inline;
+
+    }
+
+    #debug>div {
+      color: #f00;
+      background-color: #000;
+      padding: 4px;
+      margin: 4px;
+    }
+
+    #debug>div#facilityID {
+      color: #fff;
+      font-weight: 100;
+      background-color: transparent;
+    }
+
+    #debug>div#view-display {
+      color: #fff;
+      font-weight: 900;
+      text-transform: capitalize;
+      background-color: transparent;
+    }
+
+    #debug>div#websocket-state.state-1 {
+      background-color: transparent;
+      color: #0f0;
+    }
+
+    #debug>div#websocket-lastupdate.updated {
+      background-color: transparent;
+      color: #0f0;
+    }
+
+    #debug>div.auto-updated {
+      background-color: transparent;
+      color: #0f0;
+
+    }
+
+
+    #debug>div#websocket-lastupdate.updated::after {
+      content: "ms";
+      font-size: 50%;
+    }
+
+  #debug>div#page-secs::after {
+      content: "secs";
+      font-size: 50%;
+    }
+  #debug>div#page::before {
+      content: "p.";
+      font-size: 50%;
+    }
+  #debug>div#total-users::after {
+      content: "☻";
+      font-size: 50%;
+    }
+
+    body.topbar {
+      text-align: center;
+    }
+
+    body>div.background {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-repeat: no-repeat;
+      z-index: -1;
+    }
+
+    body.background>div.background {
+      display: block;
+    }
+
+    #container {
+      position: absolute;
+      top: 65px;
+      left: 42px;
+      height: 607px;
+      background: transparent;
+      display: block;
+      overflow: hidden;
+      overflow-y: hidden;
+      margin: -8px;
+      z-index: 100;
+    }
+
+    #container>.circuit-image {
+      display: none;
+      position: absolute;
+    }
+    
+    #container.topbar>.circuit-image {
+      display: block;
+    }
+
+    #container.topbar>#circuit-logo {
+      top: 22px;
+      right: 30px;
+      width: 197px;
+    }
+
+    #container.topbar>#fitnessondemand-logo {
+      top: 38px;
+      left: 30px;
+    }
+
+    #container.topbar>#fitnessondemand-logo>img {
+      width: 150px;
+    }
+
+    #container.topbar>#circuit-black-bar {
+      top: 0px;
+      left: 0px;
+      right: 0px;
+      background-color: #000;
+      height: 110px;
+    }
+
+    body.snap #container.topbar>#circuit-black-bar {
+      background-color: #262626;
+    }
+
+    #container.rightsidebar>.square {
+      display: block;
+    }
+
+
+    #container>.square {
+      background-color: grey;
+      height: 166px;
+      width: 166px;
+      margin: 8px;
+      padding: 10px;
+      display: inline-block;
+      position: relative;
+      border-radius: 12px;
+    }
+
+    #container>#square-template {
+      display: none;
+    }
+
+    #container>.square.hidden {
+      display: none;
+    }
+
+    .square .displayName {
+      font-size: 24px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: clip;
+    }
+
+    .square .zone-container {
+      vertical-align: top;
+      display: inline;
+      position: relative;
+    }
+
+    .square .zone-container>div {
+      font-size: 84px;
+      font-weight: 500;
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    .square .zone-container>.percent {
+      font-size: 44px;
+      position: absolute;
+      top: 8px;
+    }
+
+    .square>.stats {
+      width: 100%;
+      margin-top: -10px;
+      margin-left: -8px;
+    }
+    
+    .square>.stats>div:first-child {
+      margin-left: 0px;
+    }
+
+    .square>.stats>div {
+      width: 55px;
+      float: left;
+      margin-left: 8px;
+      text-align: center;
+    }
+
+    .square>.stats>div:last-child {
+      float: right;
+      margin-right: -16px;
+    }
+
+    .square>.stats .value {
+      font-size: 22px;
+    }
+
+    .square>.stats .label {
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+
+    #container.topbar {
+      white-space: nowrap;
+      overflow-x: hidden;
+      overflow: hidden;
+      overflow-x: hidden;
+      max-width: 771px;
+      width: auto;
+      margin: auto;
+      position: static;
+      height: 103px;
+      display: inline-block;
+      margin-top: -8px;
+    }
+
+    #container.rightsidebar {
+      transform: scaleY(-1);    
+      right: 20px;
+      left: auto;
+      top: auto;
+      bottom: 20px;    
+    }
+
+
+    #container.rightsidebar>.square {      
+      transform: translateX(0%) scaleY(-1);
+      transition: all 0.5s;
+    }
+    
+    #container.rightsidebar>.square.hidden {
+      display: block;
+      transform: translateX(200%) scaleY(-1);
+      position: absolute;
+      transition: all 0.5s;
+    }
+
+    #container.topbar>.square,
+    #container.rightsidebar>.square {
+      width: 73px;
+      height: 73px;
+    }
+
+    #container.topbar>.square {
+      transform: translateY(0%) translateX(-8px);
+      transition: all 0.5s;
+      display: inline-block;
+      text-align: left;
+      position: static;
+    }
+
+    #container.topbar>.square.hidden {
+      transform: translateY(-200%);
+      transition: all 0.5s;
+      position: absolute;
+    }
+
+    #container.rightsidebar>.square {
+      transform: scaleY(-1);
+      position: static;
+    }
+
+    #container.topbar>.square .displayName,
+    #container.rightsidebar>.square .displayName {
+      font-size: 12px;
+    }
+
+    #container.topbar>.square .zone-container,
+    #container.rightsidebar>.square .zone-container {
+      position: relative;
+      top: -6px;
+    }
+
+    #container.topbar>.square .zone-container>div,
+    #container.rightsidebar>.square .zone-container>div {
+      font-size: 42px;
+    }
+
+    #container.topbar>.square>.stats .value,
+    #container.rightsidebar>.square>.stats .value {
+      font-size: 10px;
+    }
+
+    #container.topbar>.square>.stats .label,
+    #container.rightsidebar>.square>.stats .label {
+      font-size: 7px;
+    }
+
+    #container.topbar>.square>.stats>div,
+    #container.rightsidebar>.square>.stats>div {
+      width: 24px;
+    }
+
+    #container.topbar>.square .zone-container>.percent,
+    #container.rightsidebar>.square .zone-container>.percent {
+      font-size: 22px;
+      top: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- your content here... -->
+  <div id="background" class="background" style="background-image: url(/media/background.jpg)"></div>
+  <div class="background" style="
+        background-image: url(/media/tiles-sample.jpg);
+        opacity: 0.5;
+        display: none;
+      "></div>
+  <div id="container">
+    <div class="circuit-image" id="circuit-black-bar">
+
+    </div>
+    <div class="circuit-image" id="circuit-logo">
+      <img id="circuit-logo-img"  src="media/Circuit365Logo.svg">
+    </div>
+    <div class="circuit-image" id="fitnessondemand-logo">
+      <img id="fitnessondemand-logo-img" src="media/LOGO.png">
+    </div>
+    <div id="square-template">
+      <div class="displayName"></div>
+      <div class="zone-container">
+        <div class="zone value"></div>
+        <div class="percent">%</div>
+      </div>
+
+      <div class="stats">
+        <div class="heartRate-container">
+          <div class="heartRate value"></div>
+          <div class="label">BPM</div>
+        </div>
+        <div class="totalPoints-container">
+          <div class="totalPoints value"></div>
+          <div class="label">pts</div>
+        </div>
+        <div class="activeEnergyBurned-container">
+          <div class="activeEnergyBurned value"></div>
+          <div class="label">Cal</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="debug">
+    <div id="brand"></div>
+    <div id="facilityID">-</div>
+    <div id="view-display"></div>
+    <a href="?view=idle&debug=1" onclick="updateDataView('idle'); return false;">Idle</a>
+    <a href="?view=circuit&debug=1" onclick="updateDataView('circuit'); return false;">Circuit</a>
+    <a href="?view=playback&debug=1" onclick="updateDataView('playback'); return false;">Playback</a>
+    <div id="websocket-state">0</div>
+    <div id="websocket-lastupdate"></div>
+    <div id="page-secs" class="auto-updated"></div>
+    <div id="page" class="auto-updated"></div>
+    <div id="total-users" class="auto-updated"></div>
+    
+  </div>
+
+  <script>
+    var queryString = window.location.search || "";
+    var keyValPairs = [];
+    var params = {};
+    queryString = queryString.substr(1);
+
+    if (queryString.length) {
+      keyValPairs = queryString.split("&");
+      for (pairNum in keyValPairs) {
+        var key = keyValPairs[pairNum].split("=")[0];
+        if (!key.length) continue;
+        if (typeof params[key] === "undefined") params[key] = [];
+        params[key].push(keyValPairs[pairNum].split("=")[1]);
+      }
+    }
+
+    var styles = [null, "topbar", "rightsidebar"];
+    var sizes = [18, 7, 5];
+    var views = ["idle", "circuit", "playback"];
+
+    params["facilityID"] = params["facilityID"] || [190129]; // Default to our test facility
+    params["brand"] = params["brand"] || ["fod"];
+    params["brand"] = params["brand"] 
+    var facilityID = params["facilityID"][0];
+    var brand = params["brand"][0].toLowerCase();
+
+    var viewParams = params["view"] ? params["view"] : []
+    var viewParam = viewParams.shift()
+    var viewID = Math.max(views.indexOf(viewParam), 0);
+    var pagems = (params["pagems"] ? params["pagems"] : []).shift() || 5000;
+
+    var maxTileAgeMs = (params["maxtileagems"] ? params["maxtileagems"] : []).shift() || 10000;
+
+    var pageSize = sizes[viewID] || 0;
+
+    var containerClass = styles[viewID];
+    var bodyClass = styles[viewID];
+
+    if (!!params["background"]) {
+      document.body.classList.add("background");
+    }
+
+    if (brand !== "fod") {
+      document.body.classList.add(brand);
+    }
+
+    if (!!params["debug"]) {
+      document.getElementById("debug").style.display = "block";
+    }
+
+    if (bodyClass) {
+      document.getElementById(
+        "background"
+      ).style.backgroundImage = "url(/media/background-" + bodyClass + ".jpg)";
+    }
+
+    document.getElementById("facilityID").innerText = facilityID
+    document.getElementById("view-display").innerText = viewParam ? viewParam : "idle"
+    document.getElementById("page-secs").innerText = (pagems / 1000);
+
+    document.getElementById("brand").innerText = brand
+
+    if (brand === "snap") {
+      document.getElementById("circuit-logo-img").src = "media/SnapLogo.svg"
+      document.getElementById("fitnessondemand-logo-img").src = "media/SnapLOGO.png"
+    }
+
+    var host = window.location.host;
+    var wsProtocol =
+    window.location.protocol === "https:" ? "wss://" : "ws://";
+    var socket = connect()
+    var container = document.getElementById("container");
+
+    document.body.classList.add(bodyClass);
+
+    var pageCounter = 0;
+    var lastUpdate = null;
+    var lastUpdateSeconds = null;
+
+
+    function connect(evt) {
+      socket = new WebSocket(
+        wsProtocol + host + "/api/v1/workouts/" + facilityID + "/listen"
+      );
+      socket.onmessage = onmessage
+      return socket;
+    }
+
+    function requiresPing() {
+      if (socket.readyState !== 1) {
+        return false
+      }
+      if (lastUpdateSeconds) {
+        return lastUpdateSeconds > 30000
+      }
+      return true
+    }
+    var sortTimeout = null;
+    function requestSort() {
+      if (sortTimeout) clearTimeout(sortTimeout);
+      sortTimeout = setTimeout(beginSort, 100);
+    }
+    
+    console.debug("beginning interval at pagems", pagems)
+    onInterval()
+    setInterval(onInterval, pagems);
+    function onInterval () {
+      console.debug("interval passed")
+      pageCounter = pageCounter + 1;
+      updateStats();
+      requestSort();
+      if (requiresPing()) {
+        socket.send([])
+      } else if (socket.readyState !== 1) {
+        connect()
+      }
+    }
+    function getDocumentOffsetPosition(el) {
+      var top = 0, left = 0;
+      while (el !== null) {
+          top += el.offsetTop;
+          left += el.offsetLeft;
+          el = el.offsetParent;
+      }
+      return {top, left};
+  }
+    function beginSort() {
+      console.debug("sorting squares");
+      var sortByKey = "intensity";
+
+      var allParticipantElems = container.getElementsByClassName("square");
+      // Convert to static array to avoid live collection issues
+      // Using slice.call for compatibility with older browsers
+      var participantArray = Array.prototype.slice.call(allParticipantElems);
+      var elementsToDelete = [];
+      
+      for (var i = 0; i < participantArray.length; i++) {
+        var elem = participantArray[i];
+        var updatedAt = parseInt(elem.getAttribute("data-updatedAt")) || 0;
+        var tileAge = Date.now() - updatedAt;
+        if (tileAge >= maxTileAgeMs) {
+          elementsToDelete.push(elem);
+        }
+      }
+      
+      // Remove all stale elements
+      for (var i = 0; i < elementsToDelete.length; i++) {
+        if (elementsToDelete[i].parentNode === container) {
+          container.removeChild(elementsToDelete[i]);
+        }
+      }
+
+      var participantElems = container.getElementsByClassName("square");
+      var numberOfPages =
+        Math.ceil(participantElems.length / pageSize) || 1;
+      var page = pageCounter % numberOfPages;
+      document.getElementById("page").innerText = page;
+      document.getElementById("total-users").innerText = participantElems.length;
+
+      var startIndex = page * pageSize;
+      var endIndex = Math.min(
+        (page + 1) * pageSize - 1,
+        participantElems.length - 1
+      );
+      for (var i = 0; i < participantElems.length; i++) {
+        var wasHidden = participantElems[i].classList.contains("hidden")
+        var willBeHidden = participantElems[i].classList.toggle("hidden", i < startIndex || i > endIndex)
+        
+        var viewID = getDataView()
+        var position = getDocumentOffsetPosition(participantElems[i]);
+        switch (viewID) {
+          case 1:            
+            if (willBeHidden) {              
+              participantElems[i].style.left = position.left + "px";
+            } else {
+              participantElems[i].style.left = "";
+            }
+            break;
+        
+          default:
+            participantElems[i].style.left = "";
+            break;
+        }
+      }
+
+      var circuitImages = document.getElementsByClassName("circuit-image")
+      
+      console.debug("isEmpty ", participantElems.length === 0);
+      Array.prototype.forEach.call(circuitImages, function (elem) {
+        elem.style.display =  participantElems.length === 0 ? "none" : "";
+      });
+    }
+
+    if (containerClass) {
+      container.classList.add(containerClass);
+    }
+
+    socket.onclose = connect;
+    
+    // Handle messages received from the WebSocket server
+    function onmessage  (event) {
+      lastUpdate = new Date()
+      var participant = JSON.parse(event.data);
+      var id = participant.userId;
+      var elemID = "participant-" + id;
+      var nowUTCSec = new Date().valueOf();
+      var birthdateUTCSec = new Date(participant["dateOfBirth"]).valueOf();
+      var age = (nowUTCSec - birthdateUTCSec) / 31556952 / 1000;
+      var maxHeartRate = 208.0 - 0.7 * age;
+      var intensityCalculated = participant["heartRate"] ?
+        ((participant["heartRate"] / maxHeartRate) * 100) : null;
+      var zone = intensityCalculated ? Math.min(intensityCalculated, 99.0).toFixed(0) : null;
+
+      var participantElem = document.getElementById(elemID);
+      if (!participantElem) {
+        var squareTemplate = document.getElementById("square-template");
+        participantElem = squareTemplate.cloneNode(true);
+        participantElem.setAttribute("id", elemID);
+        participantElem.classList.add("square");
+        participantElem.classList.add("hidden");
+        container.appendChild(participantElem);
+      }
+
+      if (zone < 60.0) {
+        participantElem.style.backgroundColor = "rgba(60, 163, 248, .8)";
+      } else if (zone < 70.0) {
+        participantElem.style.backgroundColor = "rgba(70, 240, 225, .8)";
+      } else if (zone < 80.0) {
+        participantElem.style.backgroundColor = "rgba(189, 255, 0, .8)";
+      } else if (zone < 90.0) {
+        participantElem.style.backgroundColor = "rgba(254, 129, 5, .8)";
+      } else {
+        participantElem.style.backgroundColor = "rgba(254, 14, 109, .8)";
+      }
+
+      participant["zone"] = zone;
+      var keys = [
+  "displayName",
+  "dateOfBirth",
+  "weight",
+  "userId",
+  "activeEnergyBurned",
+  "totalPoints",
+  "zone",
+  "heartRate"
+]
+      participantElem.setAttribute("data-intensity", zone);
+      keys.forEach(function (key) {
+        var elem = participantElem.getElementsByClassName(key)[0];
+        participantElem.setAttribute("data-" + key, participant[key]);
+        participantElem.setAttribute("data-updatedAt", Date.now());
+        if (elem) {
+          var value = participant[key];
+          if (participant[key] === null || participant[key] === undefined) {
+            if (key === "totalPoints") {
+              elem.parentElement.style.visibility = "hidden";
+            } else {
+              elem.textContent = "--";
+            }
+          } else if (typeof participant[key] === "number") {
+            if (key === "totalPoints") {
+              elem.parentElement.style.visibility = "";
+              elem.textContent = value >= 100 ? value.toFixed(0) : value.toFixed(1);
+            } else {
+              elem.textContent = Math.round(value);
+            }
+          } else {
+            elem.textContent = value;
+          }
+        }
+      });
+      requestSort();
+      updateStats();
+    };
+
+    function updateStats() {
+
+      if (lastUpdate) {
+        lastUpdateSeconds = Math.abs((new Date()) - lastUpdate)
+      }
+
+      document.getElementById("websocket-state").innerText = socket.readyState
+      document.getElementById("websocket-state").setAttribute("class", "state-" + socket.readyState)
+
+
+      document.getElementById("websocket-lastupdate").innerText = new Intl.NumberFormat('en', { minimumIntegerDigits: 4, useGrouping: false }).format(lastUpdateSeconds);
+      document.getElementById("websocket-lastupdate").classList.toggle("updated", lastUpdateSeconds || (lastUpdateSeconds === 0))
+
+    }
+
+    function getDataView() {
+      for (var index = 1; index < styles.length; index++) {
+        var element = styles[index];
+        if (document.body.classList.contains(element)) {
+          return index
+        }
+      }
+      return 0
+    }
+
+    function updateDataView(view, defaultValue) {
+      var indexValue = views.indexOf(view)
+      if (indexValue < 0 && !defaultValue) {
+        return false
+      }
+      var viewID = Math.max(indexValue, defaultValue == undefined ? indexValue : defaultValue);
+      var viewParam = views[viewID]
+      var styles = [null, "topbar", "rightsidebar"];
+
+      pageSize = sizes[viewID] || 0;
+
+      var containerClass = styles[viewID];
+      var bodyClass = styles[viewID];
+
+      if (bodyClass) {
+        document.getElementById(
+          "background"
+        ).style.backgroundImage = "url(/media/background-" + bodyClass + ".jpg)";
+      }
+
+
+      document.body.className = "";
+      if (bodyClass) {
+        document.body.classList.add(bodyClass);
+      }
+
+      container.className = "";
+      if (containerClass) {
+        container.classList.add(containerClass);
+      }
+
+      if (brand !== "fod") {
+        document.body.classList.add(brand);
+      }
+
+      document.getElementById("view-display").innerText = viewParam ? viewParam : "idle"
+      return true
+    }
+
+    function hideDataView() {
+      document.getElementById("container").style.display = "none";
+    }
+
+    function showDataView() {
+      document.getElementById("container").style.display = "block";
+    }
+
+    function showDebugView() {
+      document.getElementById("debug").style.display = "block";
+    }
+
+    function hideDebugView() {
+      document.getElementById("debug").style.display = "none";
+    }
+  </script>
+</body>
+
+</html>
