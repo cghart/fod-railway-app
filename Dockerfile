@@ -1,19 +1,39 @@
-FROM swift:5.9-slim
+# Build stage
+FROM swift:5.10-jammy as build
 
-WORKDIR /app
+WORKDIR /build
+
+# Copy package manifests first for better caching
+COPY Package.swift ./
+
+# Resolve dependencies
+RUN swift package resolve
+
+# Copy source code
 COPY . .
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Build application
+# Build the application
 RUN swift build --configuration release
 
-# Expose port
+# Runtime stage
+FROM swift:5.10-jammy-slim
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    libssl3 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy binary from build stage
+COPY --from=build /build/.build/release/fodserved /app/
+
+# Set environment
+ENV PORT=8080
+
 EXPOSE 8080
 
-# Start command
-CMD ["./fodserved", "serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "$PORT"]
+# Start the application
+CMD ["./fodserved", "serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8080"]
